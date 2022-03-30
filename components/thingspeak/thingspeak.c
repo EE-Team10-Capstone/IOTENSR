@@ -77,7 +77,7 @@ static void disconnected(uint32_t *args)
     ESP_LOGD(TAG, "Free heap %u", xPortGetFreeHeapSize());
 }
 
-esp_err_t thinkgspeak_post_data(uint16_t *co2, float *temperature, float *humidity)
+esp_err_t ThingSpeakPostData(uint16_t *co2, float *temperature, float *humidity)
 {
     int n;
 
@@ -124,7 +124,7 @@ esp_err_t thinkgspeak_post_data(uint16_t *co2, float *temperature, float *humidi
     return err;
 }
 
-void thingspeak_initialise()
+void initializeThingSpeak()
 {
     http_client_on_process_chunk(&http_client, process_chunk);
     http_client_on_disconnected(&http_client, disconnected);

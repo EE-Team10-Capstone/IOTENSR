@@ -14,9 +14,9 @@ static void SamplingTask(void *param)
 {
     ESP_LOGI(SamplingTaskTAG, "Now inside task :)\n");
 
-    i2c_init();
+    initializeI2C();
 
-    thingspeak_initialise();
+    initializeThingSpeak();
 
     while(true)
     {
@@ -37,7 +37,7 @@ static void SamplingTask(void *param)
 
         ESP_ERROR_CHECK(read_measurement(&co2, &temperature, &humidity));
 
-        thinkgspeak_post_data(&co2, &temperature, &humidity);
+        ThingSpeakPostData(&co2, &temperature, &humidity);
 
         vTaskDelay(pdMS_TO_TICKS(15000));
     }
