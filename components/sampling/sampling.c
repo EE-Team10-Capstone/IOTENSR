@@ -16,13 +16,17 @@ static void SamplingTask(void *param)
 
     i2c_init();
 
+    thingspeak_initialise();
+
     while(true)
     {
         uint16_t co2;
         float temperature;
         float humidity;
 
-        ESP_ERROR_CHECK(measure_single_shot());
+        //ESP_ERROR_CHECK(measure_single_shot());
+
+        ESP_ERROR_CHECK(start_periodic_measurement());
 
         bool data_ready = false;
         while(!data_ready)
@@ -32,6 +36,10 @@ static void SamplingTask(void *param)
         }
 
         ESP_ERROR_CHECK(read_measurement(&co2, &temperature, &humidity));
+
+        thinkgspeak_post_data(&co2, &temperature, &humidity);
+
+        vTaskDelay(pdMS_TO_TICKS(15000));
     }
 
 }

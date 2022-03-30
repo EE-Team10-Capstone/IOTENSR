@@ -22,14 +22,15 @@
 
 static const char* TAG = "ThingSpeak";
 
-static char *THINGSPEAK_WRITE_KEY;
+//static char *THINGSPEAK_WRITE_KEY;
 
 #define WEB_SERVER "api.thingspeak.com"
 
-// #define THINGSPEAK_WRITE_KEY "RSZX2RN2OL6CDCNU"
+#define THINGSPEAK_WRITE_KEY "RSZX2RN2OL6CDCNU"
 
 static const char* get_request_start =
-    "GET /update?key=";
+    "GET /update?key="
+    THINGSPEAK_WRITE_KEY;
 
 static const char* get_request_end =
     " HTTP/1.1\n"
@@ -76,26 +77,26 @@ static void disconnected(uint32_t *args)
     ESP_LOGD(TAG, "Free heap %u", xPortGetFreeHeapSize());
 }
 
-esp_err_t thinkgspeak_post_data(to_cloud *data_record)
+esp_err_t thinkgspeak_post_data(uint16_t *co2, float *temperature, float *humidity)
 {
     int n;
 
     // 1
-    n = snprintf(NULL, 0, "%u", data_record->co2);
+    n = snprintf(NULL, 0, "%u", *co2);
     char field1[n+1];
-    sprintf(field1, "%u", data_record->co2);
+    sprintf(field1, "%u", *co2);
     // 2
-    n = snprintf(NULL, 0, "%1.1f", data_record->temperature);
+    n = snprintf(NULL, 0, "%2.1f", *temperature);
     char field2[n+1];
-    sprintf(field2, "%1.1f", data_record->temperature);
+    sprintf(field2, "%2.1f", *temperature);
     // 3
-    n = snprintf(NULL, 0, "%1.1f", data_record->humidity);
+    n = snprintf(NULL, 0, "%2.1f", *humidity);
     char field3[n+1];
-    sprintf(field3, "%1.1f", data_record->humidity);
+    sprintf(field3, "%2.1f", *humidity);
 
     // request string size calculation
     int string_size = strlen(get_request_start);
-    string_size += strlen(THINGSPEAK_WRITE_KEY);
+    //string_size += strlen(THINGSPEAK_WRITE_KEY);
     string_size += strlen("&fieldN=") * 3;  // number of fields
     string_size += strlen(field1);
     string_size += strlen(field2);
@@ -106,7 +107,7 @@ esp_err_t thinkgspeak_post_data(to_cloud *data_record)
     // request string assembly / concatenation
     char * get_request = malloc(string_size);
     strcpy(get_request, get_request_start);
-    strcpy(get_request, THINGSPEAK_WRITE_KEY);
+    //strcpy(get_request, THINGSPEAK_WRITE_KEY);
     strcat(get_request, "&field1=");
     strcat(get_request, field1);
     strcat(get_request, "&field2=");
@@ -114,6 +115,8 @@ esp_err_t thinkgspeak_post_data(to_cloud *data_record)
     strcat(get_request, "&field3=");
     strcat(get_request, field3);
     strcat(get_request, get_request_end);
+
+    puts(get_request);
 
     esp_err_t err = http_client_request(&http_client, WEB_SERVER, get_request);
 
@@ -130,6 +133,7 @@ void thingspeak_initialise()
 void get_writekey(char *provisioned_writekey)
 {
     // Free this at some point lmao
-    THINGSPEAK_WRITE_KEY = (char *)malloc((WRITE_KEY_MAX_LEN + 1) * sizeof(char));
-    memcpy(THINGSPEAK_WRITE_KEY, provisioned_writekey, WRITE_KEY_MAX_LEN + 1);
+    // THINGSPEAK_WRITE_KEY = (char *)malloc((WRITE_KEY_MAX_LEN + 1) * sizeof(char));
+    // memcpy(THINGSPEAK_WRITE_KEY, provisioned_writekey, WRITE_KEY_MAX_LEN + 1);
+    // puts(THINGSPEAK_WRITE_KEY);
 }
