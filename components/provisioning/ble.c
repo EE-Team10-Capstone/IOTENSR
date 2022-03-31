@@ -56,7 +56,7 @@ static int wf_prv_pass_cb(uint16_t conn_handle, uint16_t attr_handle, struct ble
     buffer[ctxt->om->om_len] = '\0';
 
     pass_provisioned = true;
-    strcpy((char *)wifi_config.sta.password, buffer);
+    //strcpy((char *)wifi_config.sta.password, buffer);
     esp_wifi_sta_wpa2_ent_set_password((const unsigned char *)buffer, ctxt->om->om_len);
 
     return 0;

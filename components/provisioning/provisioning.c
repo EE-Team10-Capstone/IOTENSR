@@ -5,7 +5,7 @@ static char* ProvisionTAG = "ProvisionTask";
 
 static bool provisioned(){
   
-  if (ssid_provisioned && /*user_provisioned &&*/ pass_provisioned /*&& write_key_provisioned*/){
+  if (ssid_provisioned && user_provisioned && pass_provisioned && write_key_provisioned){
     return true;
   }
   else{return false;}
@@ -23,8 +23,8 @@ static void ProvisionTask(void *para){
    }
 
 
-    wifiInit();
-    //wifi_wpa2enterprise_initialize();
+//     wifiInit();
+    wifi_wpa2enterprise_initialize();
 
 
    while(network_is_alive() == false)

@@ -20,22 +20,22 @@ static void SamplingTask(void *param)
 
     while(true)
     {
-        uint16_t co2;
-        float temperature;
-        float humidity;
+        uint16_t co2 = 500;
+        float temperature = 22.4;
+        float humidity = 35.7;
 
         //ESP_ERROR_CHECK(measure_single_shot());
 
-        ESP_ERROR_CHECK(start_periodic_measurement());
+        // ESP_ERROR_CHECK(start_periodic_measurement());
 
-        bool data_ready = false;
-        while(!data_ready)
-        {
-            ESP_ERROR_CHECK(get_data_ready_status(&data_ready));
-            vTaskDelay(pdMS_TO_TICKS(SGNL_UPDT_INTRVL));
-        }
+        // bool data_ready = false;
+        // while(!data_ready)
+        // {
+        //     ESP_ERROR_CHECK(get_data_ready_status(&data_ready));
+        //     vTaskDelay(pdMS_TO_TICKS(SGNL_UPDT_INTRVL));
+        // }
 
-        ESP_ERROR_CHECK(read_measurement(&co2, &temperature, &humidity));
+        // ESP_ERROR_CHECK(read_measurement(&co2, &temperature, &humidity));
 
         thinkgspeak_post_data(&co2, &temperature, &humidity);
 

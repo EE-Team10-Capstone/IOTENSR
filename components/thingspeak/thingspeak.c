@@ -26,7 +26,7 @@ static const char* TAG = "ThingSpeak";
 
 #define WEB_SERVER "api.thingspeak.com"
 
-#define THINGSPEAK_WRITE_KEY "RSZX2RN2OL6CDCNU"
+#define THINGSPEAK_WRITE_KEY "PEQVHL1WZIKCBWVG"
 
 static const char* get_request_start =
     "GET /update?key="
@@ -116,6 +116,7 @@ esp_err_t thinkgspeak_post_data(uint16_t *co2, float *temperature, float *humidi
     strcat(get_request, field3);
     strcat(get_request, get_request_end);
 
+    printf("\n");
     puts(get_request);
 
     esp_err_t err = http_client_request(&http_client, WEB_SERVER, get_request);
