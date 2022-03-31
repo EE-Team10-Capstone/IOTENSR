@@ -23,8 +23,8 @@ static void ProvisionTask(void *para)
     // }
 
 
-    // wifiInit();
-    wifi_wpa2enterprise_initialize();
+    wifiInit();
+    //wifi_wpa2enterprise_initialize();
 
 
     while(network_is_alive() == false)

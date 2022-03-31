@@ -15,12 +15,16 @@
 
 static void SamplingTask(void *param)
 {
+    initializeSleep();
+
     initializeI2C();
 
     initializeThingSpeak();
 
     while(true)
     {
+        pushbuttonDebounce();
+        
         uint16_t co2;
         float temperature;
         float humidity;
@@ -41,9 +45,9 @@ static void SamplingTask(void *param)
         // ToDo: Binary semaphore for http socket: some attempts do not create one and no sample is uploaded
         ThingSpeakPostData(&co2, &temperature, &humidity);
 
-
         ESP_LOGI(SamplingTaskTAG, "Entering Light Sleep!\n");
         GoToLightSleep();
+        WakeUpLogic();
     }
 
 }
