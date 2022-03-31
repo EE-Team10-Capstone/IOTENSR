@@ -129,9 +129,9 @@ void wifi_wpa2enterprise_initialize()
     
     ESP_ERROR_CHECK( esp_wifi_set_storage(WIFI_STORAGE_RAM) );
 
-    // strcpy((char *)wifi_config.sta.ssid, "eduroam");
-    // esp_wifi_sta_wpa2_ent_set_password( (unsigned char*)PASS, strlen(PASS) );
-    // esp_wifi_sta_wpa2_ent_set_username( (unsigned char*)"bdsouza@ualberta.ca" , strlen("bdsouza@ualberta.ca"));
+    strcpy((char *)wifi_config.sta.ssid, "eduroam");
+    esp_wifi_sta_wpa2_ent_set_password( (unsigned char*)PASS, strlen(PASS) );
+    esp_wifi_sta_wpa2_ent_set_username( (unsigned char*)"bdsouza@ualberta.ca" , strlen("bdsouza@ualberta.ca"));
 
     printf("WiFi configuring with:\n");
     printf("SSID: %s\n", wifi_config.sta.ssid);

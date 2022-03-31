@@ -3,6 +3,7 @@
 #include "i2c.h"
 #include "scd41.h"
 #include "thingspeak.h"
+#include "sleep.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -10,10 +11,10 @@
 
 #define SamplingTaskTAG "SamplingTask"
 
+#define SAMPLE_PERIOD_MS 60000*5 // 5 min sample period
+
 static void SamplingTask(void *param)
 {
-    ESP_LOGI(SamplingTaskTAG, "Now inside task :)\n");
-
     initializeI2C();
 
     initializeThingSpeak();
@@ -37,9 +38,12 @@ static void SamplingTask(void *param)
 
         ESP_ERROR_CHECK(read_measurement(&co2, &temperature, &humidity));
 
+        // ToDo: Binary semaphore for http socket: some attempts do not create one and no sample is uploaded
         ThingSpeakPostData(&co2, &temperature, &humidity);
 
-        vTaskDelay(pdMS_TO_TICKS(15000));
+
+        ESP_LOGI(SamplingTaskTAG, "Entering Light Sleep!\n");
+        GoToLightSleep();
     }
 
 }
