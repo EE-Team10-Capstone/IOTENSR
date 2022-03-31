@@ -106,7 +106,7 @@ esp_err_t ThingSpeakPostData(uint16_t *co2, float *temperature, float *humidity)
     // request string assembly / concatenation
     char * get_request = malloc(string_size);
     strcpy(get_request, get_request_start);
-    strcpy(get_request, write_key);
+    strcat(get_request, write_key);
     strcat(get_request, "&field1=");
     strcat(get_request, field1);
     strcat(get_request, "&field2=");

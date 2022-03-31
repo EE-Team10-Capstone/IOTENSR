@@ -3,6 +3,8 @@
 
 void app_main(void)
 {   
+    prvsnState = InitialTry;
+
     beginProvisioning();
 
     while(!ProvisionTaskDone())
@@ -13,6 +15,7 @@ void app_main(void)
     
     // ToDo: Semaphore for begin sample on app side
     beginSampling();
+
 
 
 

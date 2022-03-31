@@ -11,20 +11,18 @@
 
 #define SamplingTaskTAG "SamplingTask"
 
-#define SAMPLE_PERIOD_MS 60000*5 // 5 min sample period
-
 static void SamplingTask(void *param)
 {
     initializeSleep();
 
     initializeI2C();
 
+    // ESP_ERROR_CHECK(stop_periodic_measurement());
+
     initializeThingSpeak();
 
     while(true)
-    {
-        pushbuttonDebounce();
-        
+    {   
         uint16_t co2;
         float temperature;
         float humidity;
@@ -42,12 +40,18 @@ static void SamplingTask(void *param)
 
         ESP_ERROR_CHECK(read_measurement(&co2, &temperature, &humidity));
 
-        // ToDo: Binary semaphore for http socket: some attempts do not create one and no sample is uploaded
-        ThingSpeakPostData(&co2, &temperature, &humidity);
+        while (ThingSpeakPostData(&co2, &temperature, &humidity) != ESP_OK)
+        {
+            vTaskDelay(pdMS_TO_TICKS(1000));
+            ESP_LOGI(SamplingTaskTAG, "Waiting for data upload...\n");
+        }
 
         ESP_LOGI(SamplingTaskTAG, "Entering Light Sleep!\n");
         GoToLightSleep();
-        WakeUpLogic();
+
+        pushbuttonDebounce();
+
+        WakeUpRoutine();
     }
 
 }

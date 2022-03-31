@@ -13,8 +13,6 @@
 
 uint8_t ble_addr_type;
 
-static char write_key[WRITE_KEY_MAX_LEN + 1];
-
 static int wf_prv_ssid_cb(uint16_t conn_handle, uint16_t attr_handle, struct ble_gatt_access_ctxt *ctxt, void *arg)
 {
     printf("SSID recieved (size: %d): %s\n", ctxt->om->om_len, ctxt->om->om_data);
@@ -251,7 +249,7 @@ static void host_task(void *param)
     nimble_port_freertos_deinit();
 }
 
-void ble_init()
+void initializeBLE()
 {
     nvs_flash_init();
 
@@ -271,6 +269,20 @@ void ble_init()
     user_provisioned = false;
     ssid_provisioned = false;
     pass_provisioned = false;
+    write_key_provisioned = false;
     memset(&wifi_config, 0, sizeof(wifi_config));
     wififlag = 0;
+}
+
+void deinitializeBLE(){
+    int ret = nimble_port_stop();
+    if (ret == 0) {
+        nimble_port_deinit();
+
+        ret = esp_nimble_hci_and_controller_deinit();
+            if (ret != ESP_OK) {
+                ESP_LOGE("NimBLE", "esp_nimble_hci_and_controller_deinit() failed with error: %d", ret);
+            }
+    }
+    ESP_LOGI("NimBLE", "BLE denitialized!\n");
 }

@@ -7,3 +7,10 @@ void beginProvisioning(void);
 bool ProvisionTaskDone(void);
 
 xSemaphoreHandle ProvisionTaskFlag;
+
+typedef enum ProvisionStates {
+    InitialTry,
+    Retry
+}ProvisionState;
+
+ProvisionState prvsnState;

@@ -27,7 +27,7 @@ extern "C" {
 esp_err_t ThingSpeakPostData(uint16_t *co2, float *temperature, float *humidity);
 void initializeThingSpeak();
 void get_writekey(char *provisioned_writekey);
-char write_key[17];
+char write_key[WRITE_KEY_MAX_LEN + 1];
 
 #ifdef __cplusplus
 }
