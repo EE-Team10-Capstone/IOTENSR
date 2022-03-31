@@ -3,6 +3,7 @@
 #include "i2c.h"
 #include "scd41.h"
 #include "thingspeak.h"
+#include "sleep.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -12,14 +13,16 @@
 
 static void SamplingTask(void *param)
 {
-    ESP_LOGI(SamplingTaskTAG, "Now inside task :)\n");
+    initializeSleep();
 
-    i2c_init();
+    initializeI2C();
 
-    thingspeak_initialise();
+    // ESP_ERROR_CHECK(stop_periodic_measurement());
+
+    initializeThingSpeak();
 
     while(true)
-    {
+    {   
         uint16_t co2;
         float temperature;
         float humidity;
@@ -37,9 +40,18 @@ static void SamplingTask(void *param)
 
         ESP_ERROR_CHECK(read_measurement(&co2, &temperature, &humidity));
 
-        thinkgspeak_post_data(&co2, &temperature, &humidity);
+        while (ThingSpeakPostData(&co2, &temperature, &humidity) != ESP_OK)
+        {
+            vTaskDelay(pdMS_TO_TICKS(1000));
+            ESP_LOGI(SamplingTaskTAG, "Waiting for data upload...\n");
+        }
 
-        vTaskDelay(pdMS_TO_TICKS(15000));
+        ESP_LOGI(SamplingTaskTAG, "Entering Light Sleep!\n");
+        GoToLightSleep();
+
+        pushbuttonDebounce();
+
+        WakeUpRoutine();
     }
 
 }

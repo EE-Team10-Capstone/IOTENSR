@@ -3,35 +3,44 @@
 
 static char* ProvisionTAG = "ProvisionTask";
 
-static bool provisioned(){
-  
-  if (ssid_provisioned && /*user_provisioned &&*/ pass_provisioned /*&& write_key_provisioned*/){
+static bool provisioned()
+{  
+  if (ssid_provisioned && /*user_provisioned &&*/ pass_provisioned && write_key_provisioned){
     return true;
   }
   else{return false;}
   
 }
 
-static void ProvisionTask(void *para){
+static void ProvisionTask(void *para)
+{
+    initializeBLE(); 
 
-   ble_init(); 
-
-   while(provisioned() == false)
-   {
+    while(provisioned() == false)
+    {
         ESP_LOGI(ProvisionTAG, "Information not yet given...\n");
         vTaskDelay(pdMS_TO_TICKS(1000));
-   }
+    }
 
+    deinitializeBLE();
 
-    wifiInit();
-    //wifi_wpa2enterprise_initialize();
+    switch (prvsnState)
+    {
+        case InitialTry:
+        wifiInit();
+        // wifi_wpa2enterprise_initialize();
+        break;
 
+        case Retry:
+        esp_wifi_start();
+        break;
+    }
 
-   while(network_is_alive() == false)
-   {
+    while(network_is_alive() == false)
+    {
         ESP_LOGI(ProvisionTAG, "WiFi not yet connected...\n");
         vTaskDelay(pdMS_TO_TICKS(1000));
-   }
+    }
 
     xSemaphoreGive(ProvisionTaskFlag);
 

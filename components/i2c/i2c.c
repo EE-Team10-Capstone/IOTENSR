@@ -8,7 +8,7 @@
 #include "esp_log.h"
 #include "driver/i2c.h"
 
-void i2c_init(void)
+void initializeI2C(void)
 {
     // Initialize ESP32 in Master Mode and initialize pins
     i2c_config_t i2c_config = {

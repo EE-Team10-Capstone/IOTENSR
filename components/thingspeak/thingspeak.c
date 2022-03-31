@@ -26,11 +26,10 @@ static const char* TAG = "ThingSpeak";
 
 #define WEB_SERVER "api.thingspeak.com"
 
-#define THINGSPEAK_WRITE_KEY "RSZX2RN2OL6CDCNU"
+//#define THINGSPEAK_WRITE_KEY "RSZX2RN2OL6CDCNU"
 
 static const char* get_request_start =
-    "GET /update?key="
-    THINGSPEAK_WRITE_KEY;
+    "GET /update?key=";
 
 static const char* get_request_end =
     " HTTP/1.1\n"
@@ -77,7 +76,7 @@ static void disconnected(uint32_t *args)
     ESP_LOGD(TAG, "Free heap %u", xPortGetFreeHeapSize());
 }
 
-esp_err_t thinkgspeak_post_data(uint16_t *co2, float *temperature, float *humidity)
+esp_err_t ThingSpeakPostData(uint16_t *co2, float *temperature, float *humidity)
 {
     int n;
 
@@ -96,7 +95,7 @@ esp_err_t thinkgspeak_post_data(uint16_t *co2, float *temperature, float *humidi
 
     // request string size calculation
     int string_size = strlen(get_request_start);
-    //string_size += strlen(THINGSPEAK_WRITE_KEY);
+    string_size += strlen(write_key);
     string_size += strlen("&fieldN=") * 3;  // number of fields
     string_size += strlen(field1);
     string_size += strlen(field2);
@@ -107,7 +106,7 @@ esp_err_t thinkgspeak_post_data(uint16_t *co2, float *temperature, float *humidi
     // request string assembly / concatenation
     char * get_request = malloc(string_size);
     strcpy(get_request, get_request_start);
-    //strcpy(get_request, THINGSPEAK_WRITE_KEY);
+    strcat(get_request, write_key);
     strcat(get_request, "&field1=");
     strcat(get_request, field1);
     strcat(get_request, "&field2=");
@@ -124,7 +123,7 @@ esp_err_t thinkgspeak_post_data(uint16_t *co2, float *temperature, float *humidi
     return err;
 }
 
-void thingspeak_initialise()
+void initializeThingSpeak()
 {
     http_client_on_process_chunk(&http_client, process_chunk);
     http_client_on_disconnected(&http_client, disconnected);

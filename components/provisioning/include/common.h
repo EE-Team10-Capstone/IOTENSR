@@ -27,4 +27,5 @@ bool network_is_alive();
 void wifiInit();
 void wifi_wpa2enterprise_initialize();
 
-void ble_init();
+void initializeBLE();
+void deinitializeBLE();
