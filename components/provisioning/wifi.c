@@ -53,23 +53,23 @@ static void OnConnected(void *para)
     }
     else
     {
-      ESP_LOGE(WIFI_TAG, "Failed to connect.\n");
-      
-      wififlag = 0;
-      //user_provisioned = false;
-      pass_provisioned = false;
-      ssid_provisioned = false;
-      printf("WiFi and provision flags cleared\n");
+        ESP_LOGE(WIFI_TAG, "Failed to connect.\n");
 
-      while(!(user_provisioned && pass_provisioned && ssid_provisioned))
-      {
-        printf("Waiting for retry\n");
-        vTaskDelay(pdMS_TO_TICKS(5000));
-      }
+        user_provisioned = false;
+        pass_provisioned = false;
+        ssid_provisioned = false;
 
-      ESP_ERROR_CHECK( esp_wifi_set_config(WIFI_IF_STA, &wifi_config) );
-      vTaskDelay(pdMS_TO_TICKS(2000));
-      ESP_ERROR_CHECK( esp_wifi_start() );
+        printf("WiFi and provision flags cleared\n");
+
+        while(!(user_provisioned && pass_provisioned && ssid_provisioned))
+        {
+            printf("Waiting for retry\n");
+            vTaskDelay(pdMS_TO_TICKS(5000));
+        }
+
+        ESP_ERROR_CHECK( esp_wifi_set_config(WIFI_IF_STA, &wifi_config) );
+        vTaskDelay(pdMS_TO_TICKS(2000));
+        ESP_ERROR_CHECK( esp_wifi_start() );
     }
     vTaskDelay(pdMS_TO_TICKS(5000));
   }
@@ -129,9 +129,9 @@ void wifi_wpa2enterprise_initialize()
     
     ESP_ERROR_CHECK( esp_wifi_set_storage(WIFI_STORAGE_RAM) );
 
-    strcpy((char *)wifi_config.sta.ssid, "eduroam");
-    esp_wifi_sta_wpa2_ent_set_password( (unsigned char*)PASS, strlen(PASS) );
-    esp_wifi_sta_wpa2_ent_set_username( (unsigned char*)"bdsouza@ualberta.ca" , strlen("bdsouza@ualberta.ca"));
+    // strcpy((char *)wifi_config.sta.ssid, "eduroam");
+    // esp_wifi_sta_wpa2_ent_set_password( (unsigned char*)PASS, strlen(PASS) );
+    // esp_wifi_sta_wpa2_ent_set_username( (unsigned char*)"bdsouza@ualberta.ca" , strlen("bdsouza@ualberta.ca"));
 
     printf("WiFi configuring with:\n");
     printf("SSID: %s\n", wifi_config.sta.ssid);

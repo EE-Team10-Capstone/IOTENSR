@@ -15,7 +15,7 @@
 #include "driver/rtc_io.h"
 
 #define SleepTAG "Light Sleep"
-#define SLEEP_PERIOD_MS 60*1000*1000 // 1 min sample period
+#define SLEEP_PERIOD_US 30*1000 //60*1000*1000 // 1 min sample period
 #define PUSHBUTTON 2
 
 static esp_sleep_wakeup_cause_t WakeUpCause;
@@ -75,6 +75,8 @@ bool PushButtonLongPress()
 //* Light Sleep
 void GoToLightSleep()
 {   
+    ESP_LOGI(SleepTAG, "Going to light sleep...\n");
+    
     esp_wifi_stop();
     
     sleep_time = esp_timer_get_time();
@@ -147,4 +149,23 @@ void WakeUpRoutine()
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 
+}
+
+
+void GoToDeepSleep()
+{
+    while (ESP_ERROR_CHECK(esp_wifi_stop()) != ESP_OK)
+    {
+        vTaskDelay(pdMS_TO_TICKS(100));
+    }
+    
+    ESP_LOGI(SleepTAG, "Entering Deep Sleep!\n");
+    rtc_gpio_deinit(PUSHBUTTON);
+
+    rtc_gpio_pullup_en(PUSHBUTTON);
+    rtc_gpio_pulldown_dis(PUSHBUTTON);
+
+    esp_sleep_enable_ext0_wakeup(PUSHBUTTON,0);
+
+    esp_deep_sleep_start();
 }

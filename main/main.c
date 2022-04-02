@@ -12,10 +12,6 @@ void app_main(void)
         vTaskDelay(pdMS_TO_TICKS(5000));
     }
     
-    // ToDo: Semaphore for begin sample on app side
     beginSampling();
-
-
-
 
 }

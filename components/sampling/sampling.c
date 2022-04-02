@@ -9,9 +9,12 @@
 #include "common.h"
 
 #define SamplingTaskTAG "SamplingTask"
+#define ONE_WEEK 10 //2016 // 2016 * 5 minutes in one week
+static uint16_t sample_counter;
 
 static void SamplingTask(void *param)
 {
+    sample_counter = 0;
     initializeSleep();
 
     // initializeI2C();
@@ -30,6 +33,13 @@ static void SamplingTask(void *param)
 
     while(true)
     {   
+        if (sample_counter++ == ONE_WEEK)
+        {
+            ESP_LOGI(SamplingTaskTAG, "One week reached; finishing task\n");
+            GoToDeepSleep();
+        }
+        ESP_LOGI(SamplingTaskTAG, "Sample Counter: %d\n", sample_counter);
+
         // uint16_t co2;
         // float temperature;
         // float humidity;
@@ -60,11 +70,10 @@ static void SamplingTask(void *param)
 
         WakeUpRoutine();
     }
-
 }
     
 void beginSampling(void)
-{
+{   
     esp_log_level_set(SamplingTaskTAG, ESP_LOG_INFO);
     ESP_LOGI(SamplingTaskTAG, "Beginning\n");
     xTaskCreate(&SamplingTask, "Provision Task", 1024*5, NULL, 3, NULL);
