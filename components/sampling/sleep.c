@@ -44,6 +44,7 @@ void initializeSleep()
     esp_sleep_enable_timer_wakeup(SLEEP_PERIOD_MS);
 }
 
+
 void pushbuttonDebounce()
 {
     if (rtc_gpio_get_level(PUSHBUTTON) == 0)
@@ -55,6 +56,21 @@ void pushbuttonDebounce()
         } while (rtc_gpio_get_level(PUSHBUTTON) == 0);
     }
 }
+
+bool PushButtonLongPress()
+{   
+    uint8_t i = 0;
+    while(rtc_gpio_get_level(PUSHBUTTON) == 0)
+    {
+        if (i++ == 3) {
+            return true;
+        }
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+
+    return false;
+}
+
 
 void GoToLightSleep()
 {   
@@ -72,19 +88,6 @@ void GoToLightSleep()
     ESP_LOGI(SleepTAG, "Slept for: %llds\n", (wake_time - sleep_time) / 1000000);
 }
 
-bool PushButtonLongPress()
-{   
-    uint8_t i = 0;
-    while(rtc_gpio_get_level(PUSHBUTTON) == 0)
-    {
-        if (i++ == 3) {
-            return true;
-        }
-        vTaskDelay(pdMS_TO_TICKS(1000));
-    }
-
-    return false;
-}
 
 
 void WakeUpRoutine()
@@ -124,7 +127,8 @@ void WakeUpRoutine()
         esp_sleep_enable_timer_wakeup(SLEEP_PERIOD_MS);
     }
 
-    esp_wifi_start();
+    ESP_ERROR_CHECK( esp_wifi_sta_wpa2_ent_enable() );
+    ESP_ERROR_CHECK( esp_wifi_start() );
 
     while(network_is_alive() == false)
     {

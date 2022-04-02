@@ -14,25 +14,25 @@ static bool provisioned()
 
 static void ProvisionTask(void *para)
 {
-    initializeBLE(); 
+    // initializeBLE(); 
 
-    while(provisioned() == false)
-    {
-        ESP_LOGI(ProvisionTAG, "Information not yet given...\n");
-        vTaskDelay(pdMS_TO_TICKS(1000));
-    }
-
-    deinitializeBLE();
+    // while(provisioned() == false)
+    // {
+    //     ESP_LOGI(ProvisionTAG, "Information not yet given...\n");
+    //     vTaskDelay(pdMS_TO_TICKS(1000));
+    // }
 
     switch (prvsnState)
     {
         case InitialTry:
+        deinitializeBLE();
         wifiInit();
         // wifi_wpa2enterprise_initialize();
         break;
 
         case Retry:
-        esp_wifi_start();
+        //ESP_ERROR_CHECK( esp_wifi_sta_wpa2_ent_enable() );
+        ESP_ERROR_CHECK( esp_wifi_start() );
         break;
     }
 

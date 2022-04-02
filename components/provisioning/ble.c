@@ -77,7 +77,14 @@ static int ts_prv_writekey_cb(uint16_t conn_handle, uint16_t attr_handle, struct
 
 static int bs_chr_cb(uint16_t conn_handle, uint16_t attr_handle, struct ble_gatt_access_ctxt *ctxt, void *arg)
 {
-    printf("Read API Key recieved (size: %d): %s\n", ctxt->om->om_len, ctxt->om->om_data);
+    printf("Begin Sample flag recieved (size: %d): %s\n", ctxt->om->om_len, ctxt->om->om_data);
+
+    int8_t buffer = *ctxt->om->om_data;
+
+    if (buffer == 1)
+    {
+        
+    }
 
     return 0;
 }
@@ -167,7 +174,7 @@ static const struct ble_gatt_svc_def gat_svcs[] = {
             // *Begin Sampling Sampling Characteristic
             {
                 .uuid = BLE_UUID128_DECLARE(0x01, 0xA0, 0xBB, 0xAD, 0x6B, 0xB6, 0xAB, 0xA8, 0x2E, 0x4A, 0x66, 0xB4, 0x0C, 0xC2, 0x58, 0x5C),
-                .flags = BLE_GATT_CHR_F_WRITE | BLE_GATT_CHR_F_NOTIFY,
+                .flags = BLE_GATT_CHR_F_WRITE,
                 .access_cb = bs_chr_cb
             },
 
