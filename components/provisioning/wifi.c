@@ -93,10 +93,10 @@ void wifiInit()
 
     ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
 
-    char homessid[] = "Ginger Beef";
-    char homepassword[] = "hansandfranciswashere100%";
-    strcpy((char *)wifi_config.sta.ssid, homessid);
-    strcpy((char *)wifi_config.sta.password, homepassword);
+    // char homessid[] = "Ginger Beef";
+    // char homepassword[] = "hansandfranciswashere100%";
+    // strcpy((char *)wifi_config.sta.ssid, homessid);
+    // strcpy((char *)wifi_config.sta.password, homepassword);
 
     printf("WiFi configuring with:\n");
     printf("SSID: %s\n", wifi_config.sta.ssid);

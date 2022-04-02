@@ -14,13 +14,13 @@ static bool provisioned()
 
 static void ProvisionTask(void *para)
 {
-    // initializeBLE(); 
+    initializeBLE(); 
 
-    // while(provisioned() == false)
-    // {
-    //     ESP_LOGI(ProvisionTAG, "Information not yet given...\n");
-    //     vTaskDelay(pdMS_TO_TICKS(1000));
-    // }
+    while(provisioned() == false)
+    {
+        ESP_LOGI(ProvisionTAG, "Information not yet given...\n");
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
 
     switch (prvsnState)
     {
@@ -35,6 +35,8 @@ static void ProvisionTask(void *para)
         ESP_ERROR_CHECK( esp_wifi_start() );
         break;
     }
+
+    
 
     while(network_is_alive() == false)
     {
@@ -51,6 +53,7 @@ void beginProvisioning()
 {
     esp_log_level_set(ProvisionTAG, ESP_LOG_INFO);
     ProvisionTaskFlag = xSemaphoreCreateBinary();
+    beginSamplingSemaphore = xSemaphoreCreateBinary();
     xTaskCreate(&ProvisionTask, "Provision Task", 1024*5, NULL, 3, NULL);
 }
 

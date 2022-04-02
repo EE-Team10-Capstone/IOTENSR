@@ -15,6 +15,7 @@
 #include "esp_wpa2.h"
 
 xSemaphoreHandle connectionSemaphore;
+xSemaphoreHandle beginSamplingSemaphore;
 
 wifi_config_t wifi_config;
 bool ssid_provisioned;

@@ -20,6 +20,14 @@ static void SamplingTask(void *param)
 
     // initializeThingSpeak();
 
+    while(xSemaphoreTake(beginSamplingSemaphore, portMAX_DELAY) == pdFALSE)
+    {
+        ESP_LOGI(SamplingTaskTAG, "Waiting for Begin Sampling flag...\n");
+        vTaskDelay(pdMS_TO_TICKS(2000));
+    }
+
+    deinitializeBLE();
+
     while(true)
     {   
         // uint16_t co2;

@@ -72,6 +72,7 @@ bool PushButtonLongPress()
 }
 
 
+//* Light Sleep
 void GoToLightSleep()
 {   
     esp_wifi_stop();
@@ -89,7 +90,7 @@ void GoToLightSleep()
 }
 
 
-
+//* Wake up logic function
 void WakeUpRoutine()
 {
     WakeUpCause = esp_sleep_get_wakeup_cause();
@@ -119,11 +120,21 @@ void WakeUpRoutine()
         }
 
         wake_time = esp_timer_get_time();
-        ESP_LOGI(SleepTAG, "Adjusted sleeptime: %llds\n", (SLEEP_PERIOD_MS - (wake_time - sleep_time)) / 1000000);
-        esp_sleep_enable_timer_wakeup(SLEEP_PERIOD_MS - (wake_time - sleep_time));
 
+        // Adjust sleep time due to premature wake up
+        int64_t adjusted_sleep_time = SLEEP_PERIOD_MS - (wake_time - sleep_time);
+        if(adjusted_sleep_time < 0)
+        {
+            adjusted_sleep_time = 2*SLEEP_PERIOD_MS - (wake_time - sleep_time);
+        }
+        else {
+            ESP_LOGI(SleepTAG, "Adjusted sleeptime: %llds\n", (SLEEP_PERIOD_MS - (wake_time - sleep_time)) / 1000000);
+        }
+        esp_sleep_enable_timer_wakeup(adjusted_sleep_time);
+        
         GoToLightSleep();
 
+        // Restore Sleep Period
         esp_sleep_enable_timer_wakeup(SLEEP_PERIOD_MS);
     }
 

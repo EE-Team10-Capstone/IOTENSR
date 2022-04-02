@@ -4,7 +4,6 @@
 void app_main(void)
 {   
     prvsnState = InitialTry;
-
     beginProvisioning();
 
     while(!ProvisionTaskDone())

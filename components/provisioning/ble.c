@@ -47,7 +47,7 @@ static int wf_prv_user_cb(uint16_t conn_handle, uint16_t attr_handle, struct ble
 
 static int wf_prv_pass_cb(uint16_t conn_handle, uint16_t attr_handle, struct ble_gatt_access_ctxt *ctxt, void *arg)
 {
-    printf("Password recieved (size: %d): %s\n", ctxt->om->om_len, ctxt->om->om_data);
+    ////printf("Password recieved (size: %d): %s\n", ctxt->om->om_len, ctxt->om->om_data);
 
     char buffer[ctxt->om->om_len + 1];
     memcpy(buffer, ctxt->om->om_data, ctxt->om->om_len);
@@ -83,7 +83,7 @@ static int bs_chr_cb(uint16_t conn_handle, uint16_t attr_handle, struct ble_gatt
 
     if (buffer == 1)
     {
-        
+        xSemaphoreGive(beginSamplingSemaphore);
     }
 
     return 0;
