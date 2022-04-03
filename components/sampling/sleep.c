@@ -140,7 +140,7 @@ void WakeUpRoutine()
         esp_sleep_enable_timer_wakeup(SLEEP_PERIOD_US);
     }
 
-    ESP_ERROR_CHECK( esp_wifi_sta_wpa2_ent_enable() );
+    //ESP_ERROR_CHECK( esp_wifi_sta_wpa2_ent_enable() );
     ESP_ERROR_CHECK( esp_wifi_start() );
 
     while(network_is_alive() == false)

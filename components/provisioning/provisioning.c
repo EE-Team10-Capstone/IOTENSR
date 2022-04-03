@@ -5,11 +5,10 @@ static char* ProvisionTAG = "ProvisionTask";
 
 static bool provisioned()
 {  
-  if (ssid_provisioned && user_provisioned && pass_provisioned /*&& write_key_provisioned*/){
+  if (ssid_provisioned /*&& user_provisioned */ && pass_provisioned && write_key_provisioned){
     return true;
   }
   else{return false;}
-  
 }
 
 static void ProvisionTask(void *para)
@@ -25,12 +24,12 @@ static void ProvisionTask(void *para)
     switch (prvsnState)
     {
         case InitialTry:
-        // wifiInit();
-        wifi_wpa2enterprise_initialize();
+        wifiInit();
+        //wifi_wpa2enterprise_initialize();
         break;
 
         case Retry:
-        ESP_ERROR_CHECK( esp_wifi_sta_wpa2_ent_enable() );
+        //ESP_ERROR_CHECK( esp_wifi_sta_wpa2_ent_enable() );
         ESP_ERROR_CHECK( esp_wifi_start() );
         break;
     }
