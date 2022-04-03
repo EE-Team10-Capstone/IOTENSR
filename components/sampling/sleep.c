@@ -41,7 +41,7 @@ void initializeSleep()
     gpio_wakeup_enable(PUSHBUTTON, GPIO_INTR_LOW_LEVEL);
 
     esp_sleep_enable_gpio_wakeup();
-    esp_sleep_enable_timer_wakeup(SLEEP_PERIOD_MS);
+    esp_sleep_enable_timer_wakeup(SLEEP_PERIOD_US);
 }
 
 
@@ -124,20 +124,20 @@ void WakeUpRoutine()
         wake_time = esp_timer_get_time();
 
         // Adjust sleep time due to premature wake up
-        int64_t adjusted_sleep_time = SLEEP_PERIOD_MS - (wake_time - sleep_time);
+        int64_t adjusted_sleep_time = SLEEP_PERIOD_US - (wake_time - sleep_time);
         if(adjusted_sleep_time < 0)
         {
-            adjusted_sleep_time = 2*SLEEP_PERIOD_MS - (wake_time - sleep_time);
+            adjusted_sleep_time = 2*SLEEP_PERIOD_US - (wake_time - sleep_time);
         }
         else {
-            ESP_LOGI(SleepTAG, "Adjusted sleeptime: %llds\n", (SLEEP_PERIOD_MS - (wake_time - sleep_time)) / 1000000);
+            ESP_LOGI(SleepTAG, "Adjusted sleeptime: %llds\n", (SLEEP_PERIOD_US - (wake_time - sleep_time)) / 1000000);
         }
         esp_sleep_enable_timer_wakeup(adjusted_sleep_time);
         
         GoToLightSleep();
 
         // Restore Sleep Period
-        esp_sleep_enable_timer_wakeup(SLEEP_PERIOD_MS);
+        esp_sleep_enable_timer_wakeup(SLEEP_PERIOD_US);
     }
 
     ESP_ERROR_CHECK( esp_wifi_sta_wpa2_ent_enable() );
@@ -154,7 +154,9 @@ void WakeUpRoutine()
 
 void GoToDeepSleep()
 {
-    while (ESP_ERROR_CHECK(esp_wifi_stop()) != ESP_OK)
+    esp_err_t ret = esp_wifi_stop();
+
+    while (ret != ESP_OK)
     {
         vTaskDelay(pdMS_TO_TICKS(100));
     }
