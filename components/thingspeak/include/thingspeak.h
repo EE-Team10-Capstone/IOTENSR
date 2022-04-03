@@ -12,7 +12,6 @@
 #define THINGSPEAK_H
 
 
-#include "cloud_data.h"
 #include "esp_err.h"
 
 #ifdef __cplusplus
