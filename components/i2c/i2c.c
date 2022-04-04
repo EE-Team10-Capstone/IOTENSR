@@ -13,8 +13,8 @@ void initializeI2C(void)
     // Initialize ESP32 in Master Mode and initialize pins
     i2c_config_t i2c_config = {
         .mode = I2C_MODE_MASTER,
-        .sda_io_num = SDA_PIN,
-        .scl_io_num = SCL_PIN,
+        .sda_io_num = 2,
+        .scl_io_num = 3,
         .sda_pullup_en = GPIO_PULLUP_ENABLE,
         .scl_pullup_en = GPIO_PULLUP_ENABLE,
         .master.clk_speed = 100000

@@ -1,4 +1,5 @@
 #include "sleep.h"
+#include "sampling_main.h"
 #include "common.h"
 #include "provisioning.h"
 
@@ -9,14 +10,13 @@
 #include <sys/time.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "esp_sleep.h"
 #include "esp_log.h"
-#include "esp32/rom/uart.h"
+//#include "esp32/rom/uart.h"
 #include "driver/rtc_io.h"
 
 #define SleepTAG "Light Sleep"
-#define SLEEP_PERIOD_US 30*1000 //60*1000*1000 // 1 min sample period
-#define PUSHBUTTON 2
+#define SLEEP_PERIOD_US 60*1000*1000 // 1 min sample period
+#define PUSHBUTTON 0
 
 static esp_sleep_wakeup_cause_t WakeUpCause;
 
@@ -82,7 +82,7 @@ void GoToLightSleep()
     sleep_time = esp_timer_get_time();
 
     // ToDo: Comment out below in production code
-    uart_tx_wait_idle(CONFIG_ESP_CONSOLE_UART_NUM);
+    //uart_tx_wait_idle(CONFIG_ESP_CONSOLE_UART_NUM);
 
     esp_light_sleep_start();
 
@@ -167,7 +167,31 @@ void GoToDeepSleep()
     rtc_gpio_pullup_en(PUSHBUTTON);
     rtc_gpio_pulldown_dis(PUSHBUTTON);
 
+    // Enable Push Button Wake Up
     esp_sleep_enable_ext0_wakeup(PUSHBUTTON,0);
 
+    // Disable Wake Up Timer
+    esp_sleep_disable_wakeup_source(ESP_SLEEP_WAKEUP_TIMER);
+
     esp_deep_sleep_start();
+}
+
+void InitialDeepSleep(SleepState *sleepState)
+{   
+    rtc_gpio_deinit(PUSHBUTTON);
+
+    if (*sleepState == WAKE){ return; }
+
+    rtc_gpio_pullup_en(PUSHBUTTON);
+    rtc_gpio_pulldown_dis(PUSHBUTTON);
+
+    // Enable Push Button Wake Up
+    esp_sleep_enable_ext0_wakeup(PUSHBUTTON,0);
+
+    ESP_LOGI(SleepTAG, "Entering Deep Sleep!\n");
+
+    *sleepState = WAKE;
+
+    esp_deep_sleep_start();
+
 }

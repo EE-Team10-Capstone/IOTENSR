@@ -1,27 +1,26 @@
 #include <stdio.h>
 
-
 #include "sampling.h"
 #include "i2c.h"
+#include "driver/i2c.h"
 #include "scd41.h"
 #include "thingspeak.h"
 #include "sleep.h"
 #include "common.h"
 
 #define SamplingTaskTAG "SamplingTask"
-#define ONE_WEEK 10 //2016 // 2016 * 5 minutes in one week
+#define ONE_WEEK 3 //2016 // 2016 * 5 minutes in one week
 static uint16_t sample_counter;
 
 static void SamplingTask(void *param)
 {
     sample_counter = 0;
-    initializeSleep();
 
-    // initializeI2C();
+    initializeSleep();
 
     // ESP_ERROR_CHECK(stop_periodic_measurement());
 
-    // initializeThingSpeak();
+    initializeThingSpeak();
 
     while(xSemaphoreTake(beginSamplingSemaphore, portMAX_DELAY) == pdFALSE)
     {
@@ -33,6 +32,9 @@ static void SamplingTask(void *param)
 
     while(true)
     {   
+        
+        initializeI2C();
+        
         if (sample_counter++ == ONE_WEEK)
         {
             ESP_LOGI(SamplingTaskTAG, "One week reached; finishing task\n");
@@ -40,30 +42,33 @@ static void SamplingTask(void *param)
         }
         ESP_LOGI(SamplingTaskTAG, "Sample Counter: %d\n", sample_counter);
 
-        // uint16_t co2;
-        // float temperature;
-        // float humidity;
+        uint16_t co2;
+        float temperature;
+        float humidity;
 
-        //ESP_ERROR_CHECK(measure_single_shot());
+        ESP_ERROR_CHECK(measure_single_shot());
 
-        // ESP_ERROR_CHECK(start_periodic_measurement());
+        //ESP_ERROR_CHECK(start_periodic_measurement());
 
-        // bool data_ready = false;
-        // while(!data_ready)
-        // {
-        //     ESP_ERROR_CHECK(get_data_ready_status(&data_ready));
-        //     vTaskDelay(pdMS_TO_TICKS(SGNL_UPDT_INTRVL));
-        // }
+        bool data_ready = false;
+        while(!data_ready)
+        {
+            ESP_ERROR_CHECK(get_data_ready_status(&data_ready));
+            vTaskDelay(pdMS_TO_TICKS(SGNL_UPDT_INTRVL));
+        }
 
-        // ESP_ERROR_CHECK(read_measurement(&co2, &temperature, &humidity));
+        ESP_ERROR_CHECK(read_measurement(&co2, &temperature, &humidity));
 
-        // while (ThingSpeakPostData(&co2, &temperature, &humidity) != ESP_OK)
-        // {
-        //     vTaskDelay(pdMS_TO_TICKS(1000));
-        //     ESP_LOGI(SamplingTaskTAG, "Waiting for data upload...\n");
-        // }
+        while (ThingSpeakPostData(&co2, &temperature, &humidity) != ESP_OK)
+        {
+            vTaskDelay(pdMS_TO_TICKS(1000));
+            ESP_LOGI(SamplingTaskTAG, "Waiting for data upload...\n");
+        }
 
         ESP_LOGI(SamplingTaskTAG, "Entering Light Sleep!\n");
+
+        ESP_ERROR_CHECK(i2c_driver_delete(I2C_NUM_0));
+
         GoToLightSleep();
 
         pushbuttonDebounce();
