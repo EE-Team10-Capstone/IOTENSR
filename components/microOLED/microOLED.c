@@ -7,7 +7,7 @@
 
 
 // SLA (0x3C) + WRITE_MODE (0x00) =  0x78 (0b01111000)
-#define OLED_I2C_ADDRESS   0x3C
+#define OLED_I2C_ADDRESS   0x3D
 
 // Control byte
 #define OLED_CONTROL_BYTE_CMD_SINGLE    0x80
@@ -126,7 +126,6 @@ void task_ssd1306_contrast(void *ignore) {
 	i2c_cmd_handle_t cmd;
 
 	uint8_t contrast = 0;
-	uint8_t direction = 1;
     cmd = i2c_cmd_link_create();
     i2c_master_start(cmd);
     i2c_master_write_byte(cmd, (OLED_I2C_ADDRESS << 1) | I2C_MASTER_WRITE, true);
@@ -138,9 +137,6 @@ void task_ssd1306_contrast(void *ignore) {
     i2c_cmd_link_delete(cmd);
     vTaskDelay(1/portTICK_PERIOD_MS);
 
-    contrast += direction;
-    if (contrast == 0xFF) { direction = -1; }
-    if (contrast == 0x0) { direction = 1; }
 	vTaskDelete(NULL);
 }
 

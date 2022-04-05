@@ -11,7 +11,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_log.h"
-//#include "esp32/rom/uart.h"
+#include "esp32/rom/uart.h"
 #include "driver/rtc_io.h"
 
 #define SleepTAG "Light Sleep"
@@ -82,7 +82,7 @@ void GoToLightSleep()
     sleep_time = esp_timer_get_time();
 
     // ToDo: Comment out below in production code
-    //uart_tx_wait_idle(CONFIG_ESP_CONSOLE_UART_NUM);
+    uart_tx_wait_idle(CONFIG_ESP_CONSOLE_UART_NUM);
 
     esp_light_sleep_start();
 
