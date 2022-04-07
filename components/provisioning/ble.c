@@ -258,6 +258,7 @@ static void host_task(void *param)
 
 void initializeBLE()
 {
+    printOLED("BLE initializing...");
     nvs_flash_init();
 
     esp_nimble_hci_and_controller_init();

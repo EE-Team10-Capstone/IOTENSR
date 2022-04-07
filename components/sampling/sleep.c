@@ -1,5 +1,5 @@
 #include "sleep.h"
-#include "sampling_main.h"
+#include "sampling.h"
 #include "common.h"
 #include "provisioning.h"
 

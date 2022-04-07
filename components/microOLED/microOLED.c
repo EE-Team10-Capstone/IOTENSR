@@ -1,12 +1,10 @@
 #include "microOLED.h"
-#define tag "SSD1306"
-
 #include "font8x8_basic.h"
 // Following definitions are bollowed from 
 // http://robotcantalk.blogspot.com/2015/03/interfacing-arduino-with-ssd1306-driven.html
 
+#define OLEDTAG "OLED"
 
-// SLA (0x3C) + WRITE_MODE (0x00) =  0x78 (0b01111000)
 #define OLED_I2C_ADDRESS   0x3D
 
 // Control byte
@@ -46,38 +44,8 @@
 #define OLED_CMD_SET_CHARGE_PUMP        0x8D    // follow with 0x14
 
 
-void ssd1306_init() {
-	esp_err_t espRc;
-	
 
-	i2c_cmd_handle_t cmd = i2c_cmd_link_create();
-
-	i2c_master_start(cmd);
-	i2c_master_write_byte(cmd, (OLED_I2C_ADDRESS << 1) | I2C_MASTER_WRITE, true);
-	i2c_master_write_byte(cmd, OLED_CONTROL_BYTE_CMD_STREAM, true);
-	
-	i2c_master_write_byte(cmd, OLED_CMD_SET_DISPLAY_OFFSET, true);
-	i2c_master_write_byte(cmd, 0x20, true);// 0x20
-
-	i2c_master_write_byte(cmd, OLED_CMD_SET_CHARGE_PUMP, true);
-	i2c_master_write_byte(cmd, 0x14, true);// enable charge pump
-
-	i2c_master_write_byte(cmd, OLED_CMD_SET_SEGMENT_REMAP, true); // reverse left-right mapping
-	i2c_master_write_byte(cmd, OLED_CMD_SET_COM_SCAN_MODE, true); // reverse up-bottom mapping
-
-	i2c_master_write_byte(cmd, OLED_CMD_DISPLAY_ON, true);
-	i2c_master_stop(cmd);
-
-	espRc = i2c_master_cmd_begin(I2C_NUM_0, cmd, 5000/portTICK_PERIOD_MS);
-	if (espRc == ESP_OK) {
-		ESP_LOGI(tag, "OLED configured successfully");
-	} else {
-		ESP_LOGE(tag, "OLED configuration failed. code: 0x%.2X", espRc);
-	}
-	i2c_cmd_link_delete(cmd);
-}
-
-void task_ssd1306_display_pattern(void *ignore) {
+static void task_ssd1306_display_pattern(void *ignore) {
 	i2c_cmd_handle_t cmd;
 
 	for (uint8_t i = 0; i < 8; i++) {
@@ -101,7 +69,7 @@ void task_ssd1306_display_pattern(void *ignore) {
 	vTaskDelete(NULL);
 }
 
-void task_ssd1306_display_clear(void *ignore) {
+static void task_OLEDClear(void *ignore) {
 	i2c_cmd_handle_t cmd;
 
 	uint8_t zero[128]={0};
@@ -122,7 +90,7 @@ void task_ssd1306_display_clear(void *ignore) {
 	vTaskDelete(NULL);
 }
 
-void task_ssd1306_contrast(void *ignore) {
+static void task_OLEDContrast(void *ignore) {
 	i2c_cmd_handle_t cmd;
 
 	uint8_t contrast = 0;
@@ -140,7 +108,7 @@ void task_ssd1306_contrast(void *ignore) {
 	vTaskDelete(NULL);
 }
 
-void task_ssd1306_scroll(void *ignore) {
+static void task_ssd1306_scroll(void *ignore) {
 	esp_err_t espRc;
 
 	i2c_cmd_handle_t cmd = i2c_cmd_link_create();
@@ -165,9 +133,9 @@ void task_ssd1306_scroll(void *ignore) {
 	i2c_master_stop(cmd);
 	espRc = i2c_master_cmd_begin(I2C_NUM_0, cmd, 10/portTICK_PERIOD_MS);
 	if (espRc == ESP_OK) {
-		ESP_LOGI(tag, "Scroll command succeeded");
+		ESP_LOGI(OLEDTAG, "Scroll command succeeded");
 	} else {
-		ESP_LOGE(tag, "Scroll command failed. code: 0x%.2X", espRc);
+		ESP_LOGE(OLEDTAG, "Scroll command failed. code: 0x%.2X", espRc);
 	}
 
 	i2c_cmd_link_delete(cmd);
@@ -175,7 +143,7 @@ void task_ssd1306_scroll(void *ignore) {
 	vTaskDelete(NULL);
 }
 
-void task_ssd1306_display_text(void *arg_text) {
+static void task_displayText(void *arg_text) {
 	char *text = (char*)arg_text;
 	uint8_t text_len = strlen(text);
 
@@ -227,82 +195,82 @@ void task_ssd1306_display_text(void *arg_text) {
 	vTaskDelete(NULL);
 }
 
-void display_char(void *charer){
-	xTaskCreate(&task_ssd1306_display_clear, "ssd1306_display_clear",  2048, NULL, 6, NULL);
-	vTaskDelay(100/portTICK_PERIOD_MS);
-	xTaskCreate(&task_ssd1306_display_text, "ssd1306_display_text",  2048,
-		charer, 6, NULL);//\n\nCO2:\n\nHumidity:\n\nTemperature:
-
-}
-
-// ESP32 I2C Initialization and Driver Setup
-void i2c_init(){
-
-    // Initialize ESP32 in Master Mode and initialize pins
-    i2c_config_t i2c_config = {
-        .mode = I2C_MODE_MASTER,
-        .sda_io_num = SDA_PIN,
-        .scl_io_num = SCL_PIN,
-        .sda_pullup_en = GPIO_PULLUP_DISABLE,
-        .scl_pullup_en = GPIO_PULLUP_DISABLE,
-        .master.clk_speed = 100000
-    };
-
-     // Wait for SCD-4x initialization duration (1s)
-    vTaskDelay(pdMS_TO_TICKS(3000));
-
-	gpio_pad_select_gpio(12);
-	gpio_set_direction(12, GPIO_MODE_OUTPUT);
-	gpio_set_level(12, 1);
-    // Install I2C Driver using above struct and I2C Port 0
-    i2c_param_config(I2C_NUM_0, &i2c_config);
-    i2c_driver_install(I2C_NUM_0, I2C_MODE_MASTER, 0, 0, 0);
-    printf("\nI2C Initialized!\n");
-
-    // //Reset pin for oled active low
-    // gpio_config_t io_conf = {};
-    // //disable interrupt
-    // io_conf.intr_type = GPIO_INTR_DISABLE;
-    // //set as output mode
-    // io_conf.mode = GPIO_MODE_OUTPUT;
-    // //bit mask of the pins that you want to set
-    // io_conf.pin_bit_mask = GPIO_OUTPUT_PIN_SEL;
-    // //disable pull-down mode
-    // io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
-    // //disable pull-up mode
-    // io_conf.pull_up_en = GPIO_PULLDOWN_ENABLE;
-    // //configure GPIO with the given settings
-    // gpio_config(&io_conf);
-
-}
 
 
-
-// void app_main() {
+void initializeOLED() 
+{
+    esp_err_t espRc;
+	
+	i2c_cmd_handle_t cmd = i2c_cmd_link_create();
+    i2c_master_start(cmd);
     
-//     i2c_init();
-// 	ssd1306_init();
-// 	uint16_t co2=19; float temperature = 23.4; float humdity= 24;
-	
-// 	char CO2_ch[60] = ("\n\n\nCO2:");
-// 	char *TEMP_ch = ("\n\nTEMP:");
-// 	char *HUMID_ch = ("\n\n\nHUMID:");
-// 	char buffer [sizeof(unsigned int)*8+1];
-// 	sprintf(buffer, "%d", co2);
-// 	char *charer = strcat(CO2_ch,buffer);
-// 	strcat(CO2_ch,TEMP_ch);
-// 	sprintf(buffer, "%2.1f", temperature);
-// 	(void) strcat(CO2_ch,buffer);
-// 	strcat(CO2_ch,HUMID_ch);
-// 	sprintf(buffer, "%2.1f", humdity);
-// 	(void) strcat(CO2_ch,buffer);
-// 	puts(CO2_ch);
-// 	//xTaskCreate(&task_ssd1306_display_pattern, "ssd1306_display_pattern",  2048, NULL, 6, NULL);
-// 	xTaskCreate(&task_ssd1306_display_clear, "ssd1306_display_clear",  2048, NULL, 6, NULL);
-// 	vTaskDelay(100/portTICK_PERIOD_MS);
-// 	xTaskCreate(&task_ssd1306_contrast, "ssid1306_contrast", 2048, NULL, 6, NULL);
-// 	display_char(charer);
-// 	// xTaskCreate(&task_ssd1306_display_pattern, "ssd1306_display_pattern",  2048,NULL, 6, NULL);
-	
-// 	vTaskDelete(NULL);
-// }
+    i2c_master_write_byte(cmd, (OLED_I2C_ADDRESS << 1) | I2C_MASTER_WRITE, true);
+
+    i2c_master_write_byte(cmd, OLED_CONTROL_BYTE_CMD_STREAM, true);
+
+    i2c_master_write_byte(cmd, OLED_CMD_DISPLAY_OFF, true);
+
+    i2c_master_write_byte(cmd, OLED_CMD_SET_DISPLAY_CLK_DIV, true);
+    i2c_master_write_byte(cmd, 0x80, true);
+
+    i2c_master_write_byte(cmd, 0xA8, true);
+    i2c_master_write_byte(cmd, 0x3F, true);
+    
+    
+    i2c_master_write_byte(cmd, OLED_CMD_SET_DISPLAY_OFFSET, true);
+    i2c_master_write_byte(cmd, 0x00, true);// 0x20
+
+    i2c_master_write_byte(cmd, 0x40, true);//set start line
+
+    i2c_master_write_byte(cmd, OLED_CMD_SET_CHARGE_PUMP, true);
+    i2c_master_write_byte(cmd, 0x14, true);// enable charge pump
+
+    
+    i2c_master_write_byte(cmd, OLED_CMD_SET_MEMORY_ADDR_MODE, true);
+    
+    i2c_master_write_byte(cmd, 0x00, true);
+    
+    i2c_master_write_byte(cmd, OLED_CMD_SET_SEGMENT_REMAP, true); // reverse left-right mapping
+    i2c_master_write_byte(cmd, OLED_CMD_SET_COM_SCAN_MODE, true); // reverse up-bottom mapping
+
+    i2c_master_write_byte(cmd, 0xDA, true); //Com pins
+    i2c_master_write_byte(cmd, 0x12, true); //
+
+    i2c_master_write_byte(cmd, OLED_CMD_SET_CONTRAST, true); //Set contrast pins
+    i2c_master_write_byte(cmd, 0xCF, true); //
+
+    i2c_master_write_byte(cmd, 0xD9, true); //Pre charge
+    i2c_master_write_byte(cmd, 0xF1, true); //
+
+    i2c_master_write_byte(cmd, 0xDB, true); //Set VCOMH Deselect LEVEL
+    i2c_master_write_byte(cmd, 0x40, true); //RST LEVL
+
+    //i2c_master_write_byte(cmd, OLED_CMD_DISPLAY_ALLON, true); //DISP ALL ON
+    i2c_master_write_byte(cmd, OLED_CMD_DISPLAY_RAM, true); //DISP ON
+
+    i2c_master_write_byte(cmd, OLED_CMD_DISPLAY_NORMAL, true); //
+    i2c_master_write_byte(cmd, 0x2E, true); //SCROLL OFF
+    i2c_master_write_byte(cmd, OLED_CMD_DISPLAY_ON, true); //DISP ON
+    i2c_master_stop(cmd);
+
+    espRc = i2c_master_cmd_begin(I2C_NUM_0, cmd, 10/portTICK_PERIOD_MS);
+	if (espRc == ESP_OK) {
+		ESP_LOGI(OLEDTAG, "OLED configured successfully");
+	} else {
+		ESP_LOGE(OLEDTAG, "OLED configuration failed. code: 0x%.2X", espRc);
+	}
+	i2c_cmd_link_delete(cmd);
+}
+
+void printOLED(void *string)
+{
+	xTaskCreate(&task_OLEDClear, 
+                "task_OLEDClear",  
+                2048, NULL, 6, NULL);
+
+	xTaskCreate(&task_displayText, 
+                "task_displayText",  
+                2048, 
+                string, 
+                6, NULL);
+}

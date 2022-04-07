@@ -15,6 +15,8 @@ static void ProvisionTask(void *para)
 {
     initializeBLE();
 
+    printOLED("Please provide\n WiFi information...");
+
     while(wifi_provisioned() == false)
     {
         ESP_LOGI(ProvisionTAG, "WiFi information not yet given...\n");
@@ -34,17 +36,23 @@ static void ProvisionTask(void *para)
         break;
     }
 
+    printOLED("Attempting WiFi connection :)");
+
     while(network_is_alive() == false)
     {
         ESP_LOGI(ProvisionTAG, "WiFi not yet connected...\n");
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 
+    printOLED("WiFi connected!\n Please provide WRITE KEY");
+
     while(write_key_provisioned == false)
     {
         ESP_LOGI(ProvisionTAG, "Write key not yet given...\n");
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
+
+    printOLED("WRITE KEY recieved!");
 
     xSemaphoreGive(ProvisionTaskFlag);
 

@@ -1,4 +1,4 @@
 idf_component_register(SRCS "ble.c" "wifi.c" "provisioning.c"
                     INCLUDE_DIRS "include"
-                    REQUIRES freertos nvs_flash esp_wifi wpa_supplicant
+                    REQUIRES freertos nvs_flash esp_wifi wpa_supplicant microOLED
                     PRIV_REQUIRES bt thingspeak)

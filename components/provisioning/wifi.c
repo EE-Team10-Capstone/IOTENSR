@@ -53,6 +53,7 @@ static void OnConnected(void *para)
     }
     else
     {
+        printOLED("WiFi attempt failed\n Please re-enter WiFi info");
         ESP_LOGE(WIFI_TAG, "Failed to connect.\n");
 
         user_provisioned = false;

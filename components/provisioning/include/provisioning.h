@@ -11,6 +11,6 @@ xSemaphoreHandle ProvisionTaskFlag;
 typedef enum ProvisionStates {
     InitialTry,
     Retry
-}ProvisionState;
+}provision_state;
 
-ProvisionState prvsnState;
+provision_state prvsnState;

@@ -14,12 +14,11 @@ static uint16_t sample_counter;
 
 static void SamplingTask(void *param)
 {
+    printOLED("Sampling has begun!");
+
     sample_counter = 0;
 
     initializeSleep();
-
-    // ESP_ERROR_CHECK(stop_periodic_measurement());
-
     initializeThingSpeak();
 
     while(xSemaphoreTake(beginSamplingSemaphore, portMAX_DELAY) == pdFALSE)
@@ -32,10 +31,9 @@ static void SamplingTask(void *param)
 
     while(true)
     {   
+        if (sample_counter++ > 0){ initializeI2C(); }
         
-        initializeI2C();
-        
-        if (sample_counter++ == ONE_WEEK)
+        if (sample_counter == ONE_WEEK)
         {
             ESP_LOGI(SamplingTaskTAG, "One week reached; finishing task\n");
             GoToDeepSleep();

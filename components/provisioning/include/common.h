@@ -14,6 +14,8 @@
 #include "esp_wifi.h"
 #include "esp_wpa2.h"
 
+#include "microOLED.h"
+
 xSemaphoreHandle connectionSemaphore;
 xSemaphoreHandle beginSamplingSemaphore;
 
