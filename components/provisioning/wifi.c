@@ -2,7 +2,6 @@
 #include "esp_netif.h"
 
 #define EAP_ID "anonymous@ualberta.ca"
-#define PASS "Modestkarl"
 
 /* FreeRTOS event group to signal when we are connected & ready to make a request */
 static EventGroupHandle_t wifi_event_group;
@@ -53,7 +52,10 @@ static void OnConnected(void *para)
     }
     else
     {
-        printOLED("WiFi attempt failed\n Please re-enter WiFi info");
+        printOLED("WiFi attempt\nfailed. Please re-enter\nWiFi info");
+        
+        ESP_ERROR_CHECK( esp_wifi_stop() );
+
         ESP_LOGE(WIFI_TAG, "Failed to connect.\n");
 
         user_provisioned = false;
@@ -64,12 +66,12 @@ static void OnConnected(void *para)
 
         while(!(user_provisioned && pass_provisioned && ssid_provisioned))
         {
+            if (xSemaphoreTake(connectionSemaphore, pdMS_TO_TICKS(5000))){break;}
             printf("Waiting for retry\n");
-            vTaskDelay(pdMS_TO_TICKS(5000));
         }
 
-        ESP_ERROR_CHECK( esp_wifi_set_config(WIFI_IF_STA, &wifi_config) );
         vTaskDelay(pdMS_TO_TICKS(2000));
+        ESP_ERROR_CHECK( esp_wifi_sta_wpa2_ent_enable() );
         ESP_ERROR_CHECK( esp_wifi_start() );
     }
     vTaskDelay(pdMS_TO_TICKS(5000));
@@ -93,11 +95,6 @@ void wifiInit()
     ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT,IP_EVENT_STA_GOT_IP,event_handler,NULL));
 
     ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
-
-    // char homessid[] = "Ginger Beef";
-    // char homepassword[] = "hansandfranciswashere100%";
-    // strcpy((char *)wifi_config.sta.ssid, homessid);
-    // strcpy((char *)wifi_config.sta.password, homepassword);
 
     printf("WiFi configuring with:\n");
     printf("SSID: %s\n", wifi_config.sta.ssid);
@@ -129,10 +126,6 @@ void wifi_wpa2enterprise_initialize()
     ESP_ERROR_CHECK( esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, event_handler, NULL) );
     
     ESP_ERROR_CHECK( esp_wifi_set_storage(WIFI_STORAGE_RAM) );
-
-    // strcpy((char *)wifi_config.sta.ssid, "eduroam");
-    // esp_wifi_sta_wpa2_ent_set_password( (unsigned char*)PASS, strlen(PASS) );
-    // esp_wifi_sta_wpa2_ent_set_username( (unsigned char*)"bdsouza@ualberta.ca" , strlen("bdsouza@ualberta.ca"));
 
     printf("WiFi configuring with:\n");
     printf("SSID: %s\n", wifi_config.sta.ssid);

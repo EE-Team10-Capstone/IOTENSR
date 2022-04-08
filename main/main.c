@@ -12,8 +12,8 @@ void app_main(void)
     initializeI2C();
     initializeOLED();
 
-    printOLED("IOTENSR\n IOT ENvironment SensoR");
-
+    printOLED(WAKE_UP_MSG);
+    
     prvsnState = InitialTry;
     beginProvisioning();
 

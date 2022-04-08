@@ -9,12 +9,12 @@
 #include "common.h"
 
 #define SamplingTaskTAG "SamplingTask"
-#define ONE_WEEK 3 //2016 // 2016 * 5 minutes in one week
+#define ONE_WEEK 200 //2016 // 2016 * 5 minutes in one week
 static uint16_t sample_counter;
 
 static void SamplingTask(void *param)
 {
-    printOLED("Sampling has begun!");
+    printOLED("Press\nBegin Sampling");
 
     sample_counter = 0;
 
@@ -27,13 +27,13 @@ static void SamplingTask(void *param)
         vTaskDelay(pdMS_TO_TICKS(2000));
     }
 
+    printOLED("Sampling\nhas begun!");
+
     deinitializeBLE();
 
     while(true)
     {   
-        if (sample_counter++ > 0){ initializeI2C(); }
-        
-        if (sample_counter == ONE_WEEK)
+        if (sample_counter++ == ONE_WEEK)
         {
             ESP_LOGI(SamplingTaskTAG, "One week reached; finishing task\n");
             GoToDeepSleep();
@@ -46,8 +46,6 @@ static void SamplingTask(void *param)
 
         ESP_ERROR_CHECK(measure_single_shot());
 
-        //ESP_ERROR_CHECK(start_periodic_measurement());
-
         bool data_ready = false;
         while(!data_ready)
         {
@@ -57,6 +55,8 @@ static void SamplingTask(void *param)
 
         ESP_ERROR_CHECK(read_measurement(&co2, &temperature, &humidity));
 
+        printSample(&co2, &temperature, &humidity);
+
         while (ThingSpeakPostData(&co2, &temperature, &humidity) != ESP_OK)
         {
             vTaskDelay(pdMS_TO_TICKS(1000));
@@ -65,11 +65,7 @@ static void SamplingTask(void *param)
 
         ESP_LOGI(SamplingTaskTAG, "Entering Light Sleep!\n");
 
-        ESP_ERROR_CHECK(i2c_driver_delete(I2C_NUM_0));
-
         GoToLightSleep();
-
-        pushbuttonDebounce();
 
         WakeUpRoutine();
     }

@@ -16,9 +16,36 @@
 
 #define SleepTAG "Light Sleep"
 #define SLEEP_PERIOD_US 60*1000*1000 // 1 min sample period
-#define PUSHBUTTON 0
+#define PUSHBUTTON 2
 
+static TaskHandle_t sleepupdater_hdl;
 static esp_sleep_wakeup_cause_t WakeUpCause;
+
+static void pushbuttonDebounce()
+{
+    if (rtc_gpio_get_level(PUSHBUTTON) == 0)
+    {
+        printf("Button debounce\n");
+        do
+        {
+        vTaskDelay(pdMS_TO_TICKS(10));
+        } while (rtc_gpio_get_level(PUSHBUTTON) == 0);
+    }
+}
+
+static bool PushButtonLongPress()
+{   
+    uint8_t i = 0;
+    while(rtc_gpio_get_level(PUSHBUTTON) == 0)
+    {
+        if (i++ == 3) {
+            return true;
+        }
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+
+    return false;
+}
 
 void initializeSleep()
 {
@@ -45,31 +72,6 @@ void initializeSleep()
 }
 
 
-void pushbuttonDebounce()
-{
-    if (rtc_gpio_get_level(PUSHBUTTON) == 0)
-    {
-        printf("Button debounce\n");
-        do
-        {
-        vTaskDelay(pdMS_TO_TICKS(10));
-        } while (rtc_gpio_get_level(PUSHBUTTON) == 0);
-    }
-}
-
-bool PushButtonLongPress()
-{   
-    uint8_t i = 0;
-    while(rtc_gpio_get_level(PUSHBUTTON) == 0)
-    {
-        if (i++ == 3) {
-            return true;
-        }
-        vTaskDelay(pdMS_TO_TICKS(1000));
-    }
-
-    return false;
-}
 
 
 //* Light Sleep
@@ -95,10 +97,14 @@ void GoToLightSleep()
 //* Wake up logic function
 void WakeUpRoutine()
 {
+    pushbuttonDebounce();
+
     WakeUpCause = esp_sleep_get_wakeup_cause();
 
     if(WakeUpCause == ESP_SLEEP_WAKEUP_GPIO)
     {
+        printOLED("Press button\nfor 3s\nto reconfigure!");
+
         ESP_LOGI(SleepTAG, "Pushbutton wakeup!\n");
         
         uint8_t i = 0;
@@ -121,17 +127,18 @@ void WakeUpRoutine()
             }
         }
 
+        printOLED("Going for\nnext sample!");
+
         wake_time = esp_timer_get_time();
 
         // Adjust sleep time due to premature wake up
         int64_t adjusted_sleep_time = SLEEP_PERIOD_US - (wake_time - sleep_time);
-        if(adjusted_sleep_time < 0)
+        while(adjusted_sleep_time < 0)
         {
-            adjusted_sleep_time = 2*SLEEP_PERIOD_US - (wake_time - sleep_time);
+            adjusted_sleep_time+=300000000;
         }
-        else {
-            ESP_LOGI(SleepTAG, "Adjusted sleeptime: %llds\n", (SLEEP_PERIOD_US - (wake_time - sleep_time)) / 1000000);
-        }
+        ESP_LOGI(SleepTAG, "Adjusted sleeptime: %llds\n", (SLEEP_PERIOD_US - (wake_time - sleep_time)) / 1000000);
+        
         esp_sleep_enable_timer_wakeup(adjusted_sleep_time);
         
         GoToLightSleep();
@@ -140,7 +147,7 @@ void WakeUpRoutine()
         esp_sleep_enable_timer_wakeup(SLEEP_PERIOD_US);
     }
 
-    //ESP_ERROR_CHECK( esp_wifi_sta_wpa2_ent_enable() );
+    ESP_ERROR_CHECK( esp_wifi_sta_wpa2_ent_enable() );
     ESP_ERROR_CHECK( esp_wifi_start() );
 
     while(network_is_alive() == false)

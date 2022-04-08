@@ -5,6 +5,10 @@
 
 #define OLEDTAG "OLED"
 
+#define CO2_ch "CO2:"
+#define TEMP_ch "\n\nTEMP:"
+#define HUMID_ch "\n\nHUMID:"
+
 #define OLED_I2C_ADDRESS   0x3D
 
 // Control byte
@@ -262,15 +266,56 @@ void initializeOLED()
 	i2c_cmd_link_delete(cmd);
 }
 
-void printOLED(void *string)
+void printOLED(char *string)
 {
-	xTaskCreate(&task_OLEDClear, 
+    vTaskDelay(pdMS_TO_TICKS(100));
+    xTaskCreate(&task_OLEDClear, 
                 "task_OLEDClear",  
                 2048, NULL, 6, NULL);
+
+    vTaskDelay(pdMS_TO_TICKS(100));
 
 	xTaskCreate(&task_displayText, 
                 "task_displayText",  
                 2048, 
-                string, 
+                (void *)string, 
                 6, NULL);
+}
+
+void printSample(uint16_t *co2, float *temperature, float *humidity)
+{
+    char buffer[5];
+    sprintf(buffer, "%hu", *co2);
+    puts(buffer);
+
+    uint16_t formlen;
+    formlen = strlen(TEMP_ch);
+    formlen += strlen(HUMID_ch);
+    formlen += strlen(CO2_ch);
+    formlen += 3*strlen(buffer)+3; //lenght of digits added together
+
+    char *formstr = (char *)malloc(formlen);
+    printf("%d\n",formlen);
+    strcpy(formstr, CO2_ch);
+    strcat(formstr, buffer);
+    strcat(formstr, TEMP_ch);
+    sprintf(buffer, "%2.1f", *temperature);
+    strcat(formstr, buffer);
+    strcat(formstr, HUMID_ch);
+    sprintf(buffer, "%2.1f", *humidity);
+    strcat(formstr, buffer);
+    puts(formstr);
+
+    xTaskCreate(&task_OLEDClear, 
+                "task_OLEDClear",  
+                2048, NULL, 6, NULL);
+
+    vTaskDelay(pdMS_TO_TICKS(100));
+
+	xTaskCreate(&task_displayText, 
+                "task_displayText",  
+                2048, 
+                (void *)formstr, 
+                6, NULL);
+
 }

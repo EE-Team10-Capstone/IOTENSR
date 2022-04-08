@@ -20,13 +20,9 @@
 #include "thingspeak.h"
 #include "http.h"
 
-static const char* TAG = "ThingSpeak";
-
-//static char *THINGSPEAK_WRITE_KEY;
-
 #define WEB_SERVER "api.thingspeak.com"
 
-//#define THINGSPEAK_WRITE_KEY "RSZX2RN2OL6CDCNU"
+static const char* TAG = "ThingSpeak";
 
 static const char* get_request_start =
     "GET /update?key=";
